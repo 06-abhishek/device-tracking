@@ -4,6 +4,9 @@ if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
+
+      console.log({ latitude, longitude });
+      
       socket.emit("send-location", { latitude, longitude });
     },
     (error) => {
