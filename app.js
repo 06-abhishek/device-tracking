@@ -35,6 +35,7 @@ io.on("connection", (socket) => {
         {
           latitude,
           longitude,
+          status: "online",
           updatedAt: new Date(),
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -49,12 +50,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     console.log("Device disconnected:", socket.id);
     io.emit("user-disconnected", socket.id);
-
-    try {
-      await Location.deleteOne({ socketId: socket.id });
-    } catch (err) {
-      console.error("Error deleting location:", err);
-    }
   });
 });
 
