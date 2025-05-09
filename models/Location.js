@@ -18,6 +18,11 @@ const locationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: String,
+    enum: ["online", "offline"],
+    default: "online",
+  },
 });
 
 module.exports = mongoose.model("Location", locationSchema);
