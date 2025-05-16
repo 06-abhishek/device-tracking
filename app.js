@@ -29,9 +29,8 @@ app.use(express.static(path.join(__dirname, "public")));
 io.on("connection", (socket) => {
   console.log("Device connected:", socket.id);
 
-  // Listen for location data
   socket.on("send-location", async (data) => {
-    const { latitude, longitude } = data;
+    const { latitude, longitude, accuracy } = data;
 
     try {
       await Location.findOneAndUpdate(
@@ -39,19 +38,24 @@ io.on("connection", (socket) => {
         {
           latitude,
           longitude,
+          accuracy,
           status: "online",
           updatedAt: new Date(),
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
 
-      io.emit("receive-location", { id: socket.id, latitude, longitude });
+      io.emit("receive-location", {
+        id: socket.id,
+        latitude,
+        longitude,
+        accuracy,
+      });
     } catch (err) {
       console.error("Error saving location:", err);
     }
   });
 
-  // On disconnection, mark as offline
   socket.on("disconnect", async () => {
     console.log("Device disconnected:", socket.id);
     io.emit("user-disconnected", socket.id);
