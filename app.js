@@ -32,19 +32,30 @@ io.on("connection", (socket) => {
   socket.on("send-location", async (data) => {
     const { latitude, longitude, accuracy } = data;
 
+    const newLocation = {
+      latitude,
+      longitude,
+      accuracy,
+      timestamp: new Date(),
+    };
+
     try {
       await Location.findOneAndUpdate(
         { socketId: socket.id },
         {
-          latitude,
-          longitude,
-          accuracy,
-          status: "online",
-          updatedAt: new Date(),
+          $set: {
+            currentLocation: newLocation,
+            status: "online",
+            updatedAt: new Date(),
+          },
+          $push: {
+            locationHistory: newLocation,
+          },
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
 
+      // Send location update to all clients
       io.emit("receive-location", {
         id: socket.id,
         latitude,
@@ -63,7 +74,10 @@ io.on("connection", (socket) => {
     try {
       await Location.findOneAndUpdate(
         { socketId: socket.id },
-        { status: "offline", updatedAt: new Date() }
+        {
+          status: "offline",
+          updatedAt: new Date(),
+        }
       );
     } catch (err) {
       console.error("Error updating status on disconnect:", err);
@@ -71,12 +85,25 @@ io.on("connection", (socket) => {
   });
 });
 
-// Simple home route
+// Route: Homepage
 app.get("/", (req, res) => {
   res.render("index");
 });
 
-// Start the server
+// Optional: API to get location history
+app.get("/location-history/:socketId", async (req, res) => {
+  try {
+    const device = await Location.findOne({ socketId: req.params.socketId });
+    if (!device) {
+      return res.status(404).json({ message: "Device not found" });
+    }
+    res.json({ history: device.locationHistory });
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("Server is running on PORT", PORT);
