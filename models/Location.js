@@ -1,28 +1,12 @@
 const mongoose = require("mongoose");
 
 const locationSchema = new mongoose.Schema({
-  socketId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  latitude: {
-    type: Number,
-    required: true,
-  },
-  longitude: {
-    type: Number,
-    required: true,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-  status: {
-    type: String,
-    enum: ["online", "offline"],
-    default: "online",
-  },
+  socketId: { type: String, required: true, unique: true },
+  latitude: Number,
+  longitude: Number,
+  accuracy: Number,
+  status: String,
+  updatedAt: Date,
 });
 
 module.exports = mongoose.model("Location", locationSchema);
